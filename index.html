@@ -1,0 +1,1101 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0F3250">
+<meta name="color-scheme" content="light">
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Saisie eau">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icone-180.png">
+<link rel="icon" type="image/png" href="icone-192.png">
+<title>Saisie terrain – Diagnostic eau</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto+Slab:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0F3250; --bord:#A3131D; --corail:#EA4A3B; --clair:#B0D2D9; --vif:#44B3E1;
+  --bg:#F2F6F8; --card:#FFFFFF; --ink:#0F3250; --muted:#56687A; --line:#D5E1E6; --soft:#E7F1F4;
+  --ok:#2E7D5B;
+  --r:14px; --tabh:64px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{-webkit-text-size-adjust:100%;text-size-adjust:100%;background:var(--bg);color:var(--ink);font-family:Montserrat,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.4;font-weight:500}
+h1,h2,h3{font-family:"Roboto Slab",Georgia,serif;margin:0;font-weight:700}
+button{font:inherit;color:inherit;cursor:pointer}
+input,textarea,select{font:inherit;font-size:16px;color:var(--ink)}
+.hidden{display:none!important}
+
+/* Header */
+.top{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;padding:calc(10px + env(safe-area-inset-top)) 12px 10px;display:flex;align-items:center;gap:8px;min-height:56px}
+.top h1{font-size:18px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.top .sub{display:block;font-family:Montserrat,sans-serif;font-size:12px;opacity:.75;font-weight:500}
+.ibtn{background:transparent;border:0;color:inherit;width:42px;height:42px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.ibtn:active{background:rgba(255,255,255,.15)}
+.ibtn svg{width:24px;height:24px}
+.savedot{font-size:11px;opacity:.7;white-space:nowrap}
+
+main{padding:12px 12px calc(var(--tabh) + 24px + env(safe-area-inset-bottom));max-width:720px;margin:0 auto}
+.home main{padding-bottom:32px}
+
+/* Bottom tabs */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:#fff;border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom)}
+.tab{flex:1;border:0;background:transparent;height:var(--tabh);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12px;color:var(--muted);font-weight:600;position:relative}
+.tab svg{width:24px;height:24px}
+.tab.on{color:var(--bord)}
+.tab .badge{position:absolute;top:6px;left:calc(50% + 8px);background:var(--navy);color:#fff;border-radius:10px;font-size:10px;padding:1px 6px;min-width:18px;text-align:center}
+.tab.on .badge{background:var(--bord)}
+
+/* Cards */
+.card{background:var(--card);border-radius:var(--r);padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(15,50,80,.06)}
+.sec{background:var(--card);border-radius:var(--r);margin-bottom:10px;box-shadow:0 1px 2px rgba(15,50,80,.06);overflow:hidden}
+.sec>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:14px;font-family:"Roboto Slab",serif;font-weight:700;font-size:17px;color:var(--bord)}
+.sec>summary::-webkit-details-marker{display:none}
+.sec>summary .cnt{margin-left:auto;font-family:Montserrat,sans-serif;font-size:12px;font-weight:600;color:var(--muted);background:var(--soft);border-radius:10px;padding:3px 9px}
+.sec>summary .cnt.full{background:var(--ok);color:#fff}
+.sec>summary .chev{width:20px;height:20px;transition:transform .2s;color:var(--muted)}
+.sec[open]>summary .chev{transform:rotate(180deg)}
+.sec .body{padding:0 14px 6px}
+.q{padding:12px 0;border-top:1px solid var(--line)}
+.q:first-child{border-top:0;padding-top:2px}
+.lbl{display:block;font-weight:600;font-size:15px;margin-bottom:4px}
+.hint{font-size:13px;color:var(--muted);margin:-2px 0 8px;font-weight:500}
+.info{background:var(--soft);border-radius:10px;padding:10px 12px;font-size:14px;color:var(--navy)}
+.info b{font-weight:700}
+.warn{background:#FDECEA;color:var(--bord)}
+
+.row{display:flex;gap:8px;align-items:center}
+.row>.grow{flex:1;min-width:0}
+.fld{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff;min-height:46px;outline:none;-webkit-appearance:none;appearance:none}
+textarea.fld{resize:vertical;min-height:84px;line-height:1.35}
+select.fld{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2356687A' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-size:20px;padding-right:36px}
+.fld:focus{border-color:var(--vif);box-shadow:0 0 0 3px rgba(68,179,225,.2)}
+.fld.bad{border-color:var(--corail)}
+.unit{color:var(--muted);font-size:14px;white-space:nowrap}
+.mic{width:46px;height:46px;border-radius:50%;border:0;background:var(--soft);color:var(--navy);display:inline-flex;align-items:center;justify-content:center;flex:none}
+.mic svg{width:22px;height:22px}
+.mic.on{background:var(--corail);color:#fff;animation:pulse 1.2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(234,74,59,.5)}70%{box-shadow:0 0 0 12px rgba(234,74,59,0)}100%{box-shadow:0 0 0 0 rgba(234,74,59,0)}}
+.nomic .mic{display:none}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.chip{border:1.5px solid var(--navy);background:#fff;color:var(--navy);border-radius:22px;padding:9px 14px;font-size:15px;font-weight:600;min-height:42px}
+.chip.on{background:var(--navy);color:#fff}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:12px;padding:12px 16px;font-weight:700;font-size:15px;min-height:48px}
+.btn svg{width:20px;height:20px}
+.btn.pri{background:var(--bord);color:#fff}
+.btn.sec2{background:#fff;color:var(--navy);border:1.5px solid var(--navy)}
+.btn.ghost{background:transparent;color:var(--bord);padding:10px}
+.btn.block{width:100%}
+.btns{display:flex;gap:10px;flex-wrap:wrap}
+.btns>.btn{flex:1}
+
+/* Home */
+.hero{background:var(--navy);color:#fff;border-radius:var(--r);padding:18px;margin-bottom:14px}
+.hero h2{font-size:22px;margin-bottom:6px}
+.hero p{margin:0;font-size:14px;opacity:.85}
+.vitem{display:flex;align-items:center;gap:10px;background:#fff;border-radius:var(--r);padding:14px;margin-bottom:10px;box-shadow:0 1px 2px rgba(15,50,80,.06);border:0;width:100%;text-align:left}
+.vrow{display:flex;align-items:stretch;gap:8px;margin-bottom:10px}
+.vrow .vitem{margin-bottom:0;flex:1;min-width:0}
+.vdel{flex:none;width:52px;border:0;border-radius:var(--r);background:#fff;color:var(--bord);display:flex;align-items:center;justify-content:center;box-shadow:0 1px 2px rgba(15,50,80,.06)}
+.vdel svg{width:22px;height:22px}
+.vdel:active{background:#FDECEA}
+.vitem .t{font-weight:700;font-size:16px}
+.vitem .m{font-size:13px;color:var(--muted)}
+.tag{font-size:11px;font-weight:700;border-radius:8px;padding:2px 8px;background:var(--soft);color:var(--navy);white-space:nowrap}
+.tag.ok{background:#E3F2EA;color:var(--ok)}
+.h3{font-size:16px;color:var(--bord);margin:18px 2px 10px}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.sw{position:relative;width:52px;height:30px;flex:none}
+.sw input{opacity:0;width:0;height:0}
+.sw span{position:absolute;inset:0;background:var(--line);border-radius:30px;transition:.2s}
+.sw span:before{content:"";position:absolute;width:24px;height:24px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.sw input:checked+span{background:var(--ok)}
+.sw input:checked+span:before{transform:translateX(22px)}
+
+/* Postes */
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.kpi{background:var(--soft);border-radius:10px;padding:10px}
+.kpi .v{font-family:"Roboto Slab",serif;font-size:22px;font-weight:700}
+.kpi .l{font-size:12px;color:var(--muted)}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--vif);border-radius:4px}
+.bar i.hi{background:var(--corail)}
+.poste{background:#fff;border-radius:var(--r);margin-bottom:10px;box-shadow:0 1px 2px rgba(15,50,80,.06)}
+.poste .ph{display:flex;align-items:center;gap:10px;padding:14px;border:0;background:transparent;width:100%;text-align:left}
+.poste .num{width:30px;height:30px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:none}
+.poste .pt{flex:1;min-width:0}
+.poste .pt b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.poste .pt span{font-size:13px;color:var(--muted)}
+.poste .pv{font-weight:700;white-space:nowrap;font-size:14px}
+.chev{width:20px;height:20px;flex:none;color:var(--muted);transition:transform .2s}
+.poste .ph .chev{width:22px;height:22px}
+.poste .pt span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.poste .pb{padding:0 14px 14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.f{margin-bottom:12px}
+.f .lbl{font-size:14px}
+.calc{color:var(--bord);background:transparent;border:0;font-weight:700;font-size:14px;padding:6px 0;display:inline-flex;gap:6px;align-items:center}
+.calc svg{width:18px;height:18px}
+.est{background:var(--soft);border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:12px}
+.est b{font-size:16px}
+
+.pc .meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.del{color:var(--bord);background:transparent;border:0;font-weight:700;font-size:14px;display:inline-flex;gap:6px;align-items:center;padding:8px 0}
+.del svg{width:18px;height:18px}
+.ts{font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:600}
+.empty{text-align:center;color:var(--muted);padding:28px 16px;font-size:15px}
+
+/* Modal */
+.ov{position:fixed;inset:0;background:rgba(15,50,80,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:#fff;width:100%;max-width:720px;max-height:88vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px 16px calc(20px + env(safe-area-inset-bottom))}
+.sheet h2{font-size:19px;color:var(--bord);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.sheet .x{background:var(--soft);border:0;border-radius:50%;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center}
+.sheet .x svg{width:20px;height:20px}
+.bq{display:block;width:100%;text-align:left;border:0;border-top:1px solid var(--line);background:#fff;padding:12px 2px}
+.bq b{display:block;font-weight:600}
+.bq span{font-size:12px;color:var(--muted)}
+.res{background:var(--soft);border-radius:10px;padding:12px;margin:8px 0 12px;font-size:15px}
+.res b{font-family:"Roboto Slab",serif;font-size:20px}
+
+.toast{position:fixed;left:50%;bottom:calc(var(--tabh) + 18px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;z-index:60;max-width:90vw;box-shadow:0 4px 14px rgba(0,0,0,.2)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<input type="file" id="fileIn" accept=".txt,text/plain" class="hidden">
+<script>
+'use strict';
+/* =====================================================================
+   Saisie terrain – Diagnostic eau CMA AURA
+   Cible : classeur « Diagnostic Agence de l'Eau VBA – Modèle 2026 »
+   - Onglet « Questions entretien » : colonne D (réponses), repérage par libellé (colonne C)
+   - Onglet « Données Terrain » : Tableau1 (colonnes de saisie) + J4 (unité d'activité)
+   - Pistes d'actions et notes : onglet « Notes terrain » créé par la macro
+   Les listes ci-dessous reprennent EXACTEMENT celles de l'onglet « Listes » du modèle.
+   ===================================================================== */
+
+// Listes!F3:F30 – libellés exacts (« Recette (incompressible) » finit par une espace dans le modèle)
+const CATS = ["Recette (incompressible) ","Plonge machine","Plonge manuelle","Nettoyage des sols et surfaces","Nettoyage des outils","Lavage Linge","Toilettes","Refroidissement","Découpe/usinage","Autres process","Autres","Lavage des mains","Autre nettoyage","Douche","Bac à shampoing","Nettoyage de véhicule","Remplissage ou appoint bassin/piscine","Arrosage espaces verts","Lavage de fruits/légumes","Nettoyage de cuves","Stérilisation/pasteurisation","Totalité des consommations","Cuisson","Abreuvement animaux","Abattage des poussières","Arrosage des grumes en scierie","Fuite","Non identifié"];
+const FREQ = ["par jour","par semaine","par an"];                                   // Listes!C3:C5
+const MES  = ["Estimation","Estimation déduite des autres consommations","Mesure"]; // Listes!B4:B6
+const TYPES = ["Eco-geste","Investissement faible  <1000€","Investissement moyen entre 1000 et 10k€","Investissement important >10k€"]; // Listes!H3:H6
+const UNITS_ACT = ["clients","kg de farine","litres produits","hL de bière","tonnes","couverts","véhicules","pièces"];
+const UNITS_POSTE = ["chasse","lavage","cycle","plonge","jour","client","shampoing","douche","bac","nettoyage","brassin","véhicule"];
+
+// Banque de préconisations (onglet « Base de données Préconisations », Tableau8) – [secteur, titre, type, poste]
+const BANQUE = [
+ ["Tous","Ecogestes","Eco-geste",""],
+ ["Tous","Vase expansion sanitaire","Investissement faible  <1000€",""],
+ ["Tous","Aérateur/mousseur","Eco-geste","Lavage des mains"],
+ ["Tous","Réducteur de débit en amont du point d'eau","Eco-geste",""],
+ ["Tous","Installation d'une chasse d'eau plus économe","Investissement faible  <1000€","Toilettes"],
+ ["Tous","Installation objet inerte dans la chasse d'eau","Eco-geste","Toilettes"],
+ ["Tous","Installation de WC à faible consommation d'eau","Investissement faible  <1000€","Toilettes"],
+ ["Tous","Utilisation d'un balai à réservoir pour le lavage des sols","Eco-geste","Nettoyage des sols et surfaces"],
+ ["Tous","Installation d’un mitigeur thermostatique centralisé","Investissement faible  <1000€",""],
+ ["Tous","Remplacement de l’adoucisseur à sel par dispositif de traitement anti-calcaire","Investissement faible  <1000€",""],
+ ["Tous","Récupération eau de pluie","Investissement faible  <1000€",""],
+ ["Tous","Remplacement de la climatisation à eau perdue","Investissement moyen entre 1000 et 10k€","Refroidissement"],
+ ["Tous","Investissement dans un nettoyeur haute-pression plus économe","Investissement moyen entre 1000 et 10k€",""],
+ ["Tous","Nettoyage vapeur","Investissement moyen entre 1000 et 10k€","Nettoyage des sols et surfaces"],
+ ["Tous","Installer un monnayeur sur les douches","Eco-geste","Douche"],
+ ["Tous","Installation d’un robinet poussoir temporisé dans les établissements recevant du public","Investissement faible  <1000€","Lavage des mains"],
+ ["Tous","Circuit fermé de refroidissement","Investissement moyen entre 1000 et 10k€","Refroidissement"],
+ ["Tous","Circuit fermé de process en marbrerie","Investissement important >10k€","Découpe/usinage"],
+ ["Tous","Optimisation du système de nettoyage en place","Investissement moyen entre 1000 et 10k€","Nettoyage de cuves"],
+ ["Tous","Installation d’un équipement de mesure de la qualité de l’eau en sortie de cuve","Investissement moyen entre 1000 et 10k€","Nettoyage de cuves"],
+ ["Coiffeur","Douchettes hydro-économes","Investissement faible  <1000€","Bac à shampoing"],
+ ["Coiffeur","Utilisation de serviettes microfibres","Investissement faible  <1000€","Lavage Linge"],
+ ["Coiffeur","Utilisation de cape avec col en silicone","Investissement faible  <1000€","Lavage Linge"],
+ ["Coiffeur","Utilisation programme rapide/express","Eco-geste","Lavage Linge"],
+ ["Alimentaire","Utilisation d’une douchette de prérinçage à faible débit : valve","Investissement faible  <1000€","Plonge manuelle"],
+ ["Alimentaire","Utilisation d’une douchette de prérinçage à faible débit : douchette","Investissement faible  <1000€","Plonge manuelle"],
+ ["Alimentaire","Investissement dans un lave-batterie/vaisselle","Investissement moyen entre 1000 et 10k€","Plonge manuelle"],
+ ["Alimentaire","Utilisation de produits 2 en 1 ou d’un désinfectant sans rinçage","Eco-geste","Nettoyage des sols et surfaces"],
+ ["Alimentaire","Régler le débit de la centrale de nettoyage","Eco-geste","Nettoyage des sols et surfaces"],
+ ["Alimentaire","Installation d'un pistolet air/eau","Investissement moyen entre 1000 et 10k€","Nettoyage des sols et surfaces"],
+ ["Alimentaire","Remplacer le lave-batterie par un modèle économe","Investissement moyen entre 1000 et 10k€","Plonge machine"]
+];
+
+/* Champs écrits dans « Questions entretien » (repérage par libellé de la colonne C).
+   Le questionnaire se remplit à la main dans l'Excel, pendant l'entretien. */
+const SECTIONS = [{t:"Visite", items:[
+  {r:7, label:"Nom entreprise", type:"text", kind:"t"},
+  {r:5, label:"Date de visite (jj/mm/aa)", type:"date", kind:"d"},
+  {r:22, label:"Nombre de jours d'ouverture par semaine", type:"number", kind:"n"},
+  {r:23, label:"Nombre de semaines d'ouverture", type:"number", kind:"n"}
+]}];
+const ALLQ = SECTIONS.flatMap(s=>s.items).filter(i=>i.type!=="info");
+
+/* ---------- Icons ---------- */
+const I = {
+ back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>',
+ dl:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>',
+ mic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
+ plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+ trash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>',
+ chev:'<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>',
+ x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+ calc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h2M14 12h2M8 16h2M14 16h2"/></svg>',
+ share:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>',
+ open:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16M12 4v12M7 9l5-5 5 5"/></svg>',
+ tq:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9zM9 12h6M9 16h4"/></svg>',
+ tc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s-6 7-6 11a6 6 0 0 0 12 0c0-4-6-11-6-11z"/></svg>',
+ ta:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/></svg>',
+ tn:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5M8 13h8M8 17h5"/></svg>'
+};
+
+/* ---------- Utilitaires ---------- */
+const $ = s => document.querySelector(s);
+const escH = s => String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const today = () => { const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+const fmtN = (n,d=1) => n==null||!isFinite(n) ? "–" : new Intl.NumberFormat("fr-FR",{maximumFractionDigits:d}).format(n);
+const fmtDate = s => { if(!s) return ""; const p=s.split("-"); return p.length===3? p[2]+"/"+p[1]+"/"+p[0] : s; };
+const fmtTs = t => new Date(t).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+function num(s){ if(s==null) return null; s=String(s).replace(/[\s  ]/g,"").replace(",","."); if(s===""||isNaN(+s)) return null; return +s; }
+function chv(v){ return v && typeof v==="object" ? v.c : v; }
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+// Le navigateur n'autorise le micro que pour une page servie en https : une page ouverte comme fichier est toujours refusée.
+const MIC_OK = !!SR && location.protocol==="https:";
+
+/* ---------- Stockage ---------- */
+const LS_KEY = "cmaVisitesEau.v1";
+let store = {visits:{}, settings:{mic:true}};
+let lsOK = true;
+function loadStore(){ try{ const s=localStorage.getItem(LS_KEY); if(s){ const o=JSON.parse(s); store.visits=o.visits||{}; store.settings=Object.assign(store.settings,o.settings||{}); } }catch(e){ lsOK=false; } }
+function persist(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(store)); lsOK=true; }catch(e){ lsOK=false; } }
+let saveT=null;
+function save(){ if(!cur) return; cur.updated=Date.now(); clearTimeout(saveT); saveT=setTimeout(()=>{ persist(); const el=$("#saved"); if(el) el.textContent = lsOK ? "Enregistré "+new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}) : "Non enregistré"; },300); }
+window.addEventListener("pagehide", ()=>{ if(cur) persist(); });
+document.addEventListener("visibilitychange", ()=>{ if(document.hidden && cur) persist(); });
+
+let cur = null;
+const ui = {view:"home", tab:"c", open:{0:true}, popen:{}};
+
+function newVisit(){
+  const id = "v"+Date.now().toString(36);
+  const v = {id, created:Date.now(), updated:Date.now(), exported:null, q:{r5:today()}, j4:"", volFact:"", postes:[], pistes:[], notes:[]};
+  store.visits[id]=v; persist(); return v;
+}
+const vName = v => (v.q.r7||"").trim() || "Nouvelle visite";
+
+/* ---------- Chemins de données ---------- */
+function setPath(path, val){
+  const parts = path.split("."); let o = cur;
+  for(let i=0;i<parts.length-1;i++){
+    const k = /^\d+$/.test(parts[i]) ? +parts[i] : parts[i];
+    if(o[k]==null || typeof o[k]!=="object") o[k] = {c:"", t:""};
+    o = o[k];
+  }
+  o[parts[parts.length-1]] = val;
+}
+function qv(item){ const v=cur.q["r"+item.r]; if(item.type==="choice") return (v&&typeof v==="object")?v:{c:"",t:""}; if(item.type==="multi") return (v&&typeof v==="object")?{c:Array.isArray(v.c)?v.c:[],t:v.t||""}:{c:[],t:""}; return v==null?"":v; }
+function visible(item){ return !item.show || item.show(cur.q); }
+function answered(item){ const v=qv(item); if(item.type==="choice") return !!(v.c||v.t); if(item.type==="multi") return v.c.length>0||!!v.t; return String(v).trim()!==""; }
+
+/* ---------- Champs ---------- */
+let fid=0;
+function micBtn(id){ return MIC_OK && store.settings.mic ? `<button class="mic" type="button" data-mic="${id}" aria-label="Dicter">${I.mic}</button>` : ""; }
+function fText(path, val, o={}){
+  const id="f"+(fid++);
+  const attrs = `id="${id}" data-bind="${path}" ${o.num?'data-num="1" inputmode="decimal"':''} ${o.im?`inputmode="${o.im}"`:''} ${o.ph?`placeholder="${escH(o.ph)}"`:''} ${o.list?`list="${o.list}"`:''} autocomplete="off" ${o.upper?'autocapitalize="characters"':''}`;
+  const field = o.area ? `<textarea class="fld" rows="${o.rows||3}" ${attrs}>${escH(val)}</textarea>`
+                       : `<input class="fld${o.badc?' bad':''}" type="${o.type||'text'}" value="${escH(val)}" ${attrs}>`;
+  return `<div class="row"><div class="grow">${field}</div>${o.unit?`<span class="unit">${escH(o.unit)}</span>`:""}${o.nomic?"":micBtn(id)}</div>`;
+}
+function fSelect(path, val, opts, ph){
+  return `<select class="fld" data-bind="${path}"><option value="">${escH(ph||"Choisir…")}</option>${opts.map(o=>{const v=Array.isArray(o)?o[0]:o, l=Array.isArray(o)?o[1]:o; return `<option value="${escH(v)}" ${v===val?"selected":""}>${escH(l.trim())}</option>`;}).join("")}</select>`;
+}
+
+function renderItem(it){
+  if(it.type==="info") return `<div class="q"><div class="info">${it.html}</div></div>`;
+  if(!visible(it)) return "";
+  const v=qv(it), p="q.r"+it.r;
+  let h = `<div class="q" data-row="${it.r}"><label class="lbl">${escH(it.disp||it.label.trim())}</label>${it.hint?`<div class="hint">${escH(it.hint)}</div>`:""}`;
+  switch(it.type){
+    case "text": case "email": case "tel":
+      h += fText(p, v, {type:it.type==="text"?"text":it.type, im:it.im, upper:it.upper, badc: it.check && !it.check(String(v))});
+      if(it.check) h += `<div class="hint bad-msg ${it.check(String(v))?"hidden":""}" data-badfor="${it.r}" style="color:var(--corail);margin-top:6px">${escH(it.bad)}</div>`;
+      break;
+    case "textarea": h += fText(p, v, {area:true, rows:it.rows}); break;
+    case "number": h += fText(p, v, {num:true, unit:it.unit}); break;
+    case "date": h += `<input class="fld" type="date" data-bind="${p}" value="${escH(v)}">`; break;
+    case "select": h += fSelect(p, v, it.opts); break;
+    case "qty":
+      h += fText(p, v, {num:true});
+      h += `<div style="margin-top:8px"><label class="lbl" style="font-size:13px;color:var(--muted)">Unité de mesure de l'activité (copiée dans Données Terrain J4)</label>${fText("j4", cur.j4||"", {list:"dl-act", ph:"ex. clients, kg de farine…"})}</div>`;
+      break;
+    case "choice": case "multi": {
+      const multi = it.type==="multi";
+      h += `<div class="chips">${it.opts.map(o=>{const on = multi ? v.c.includes(o) : v.c===o; return `<button type="button" class="chip ${on?"on":""}" data-chip="${p}" data-mode="${multi?"m":"1"}" data-val="${escH(o)}">${escH(o)}</button>`;}).join("")}</div>`;
+      h += fText(p+".t", v.t, {ph: it.ph || "Précision (facultatif)"});
+      break;
+    }
+  }
+  return h+"</div>";
+}
+
+/* ---------- Écrans ---------- */
+function render(){
+  fid=0;
+  document.body.classList.toggle("home", ui.view==="home");
+  document.body.classList.toggle("nomic", !store.settings.mic);
+  $("#app").innerHTML = ui.view==="home" ? renderHome() : renderVisit();
+  if(ui.view==="visit") updateDerived();
+}
+
+function renderHome(){
+  const vs = Object.values(store.visits).sort((a,b)=>b.updated-a.updated);
+  return `<header class="top"><h1>Saisie terrain<span class="sub">Diagnostic eau · CMA Auvergne-Rhône-Alpes</span></h1></header>
+  <main>
+    <div class="hero"><h2>Visites</h2><p>Les données restent sur ce téléphone. En fin de visite, exportez le fichier puis importez-le dans le diagnostic Excel (bouton « Importer la visite »).</p></div>
+    ${!lsOK?`<div class="card info warn">La sauvegarde automatique n'est pas disponible dans ce navigateur : exportez la visite avant de fermer la page.</div>`:""}
+    <div class="btns" style="margin-bottom:6px">
+      <button class="btn pri" data-act="new">${I.plus} Nouvelle visite</button>
+      <button class="btn sec2" data-act="import">${I.open} Ouvrir un fichier</button>
+    </div>
+    <h3 class="h3">Visites enregistrées sur ce téléphone</h3>
+    ${vs.length? vs.map(v=>`<div class="vrow"><button class="vitem" data-act="openv" data-id="${v.id}">
+        <div style="flex:1;min-width:0"><div class="t">${escH(vName(v))}</div><div class="m">Visite du ${escH(fmtDate(v.q.r5)||"–")} · modifiée ${escH(fmtTs(v.updated))}</div>
+        <div style="margin-top:6px">${v.exported?`<span class="tag ok">Exportée</span>`:`<span class="tag">Non exportée</span>`}</div></div></button>
+        <button class="vdel" data-act="delvid" data-id="${v.id}" aria-label="Supprimer la visite">${I.trash}</button></div>`).join("")
+      : `<div class="empty">Aucune visite pour l'instant.</div>`}
+    <div class="info" style="margin-bottom:10px"><b>Sur iPhone :</b> ouvrez la page dans Safari, touchez <b>Partager</b> puis <b>Sur l'écran d'accueil</b>, et utilisez toujours cette icône (les visites sont enregistrées dans l'appli de l'écran d'accueil, pas dans Safari). Exportez chaque visite le jour même.</div>
+    <div class="info"><b>Dicter :</b> touchez un champ, puis le micro du clavier du téléphone (Gboard, Samsung, iPhone). Dans l'onglet Consos, un poste peut être décrit en une seule phrase.</div>
+  </main>`;
+}
+
+function tabBtn(k, label, icon, badge){ return `<button class="tab ${ui.tab===k?"on":""}" data-act="tab" data-tab="${k}">${icon}<span>${label}</span><span class="badge" id="b-${k}">${badge}</span></button>`; }
+
+function renderVisit(){
+  const tabs = {c:renderC, a:renderA, n:renderN};
+  return `<header class="top">
+    <button class="ibtn" data-act="home" aria-label="Retour">${I.back}</button>
+    <h1><span id="vname">${escH(vName(cur))}</span><span class="sub" id="saved">${lsOK?"Enregistrement auto":"Sauvegarde indisponible"}</span></h1>
+    <button class="ibtn" data-act="export" aria-label="Exporter">${I.dl}</button>
+  </header>
+  <main id="tabbody">${tabs[ui.tab]()}</main>
+  <nav class="tabs">
+    ${tabBtn("c","Consos",I.tc,"")}
+    ${tabBtn("a","Pistes",I.ta,"")}
+    ${tabBtn("n","Notes",I.tn,"")}
+  </nav>
+  <datalist id="dl-act">${UNITS_ACT.map(u=>`<option value="${escH(u)}">`).join("")}</datalist>
+  <datalist id="dl-unit">${UNITS_POSTE.map(u=>`<option value="${escH(u)}">`).join("")}</datalist>`;
+}
+
+/* --- Consommations --- */
+function annuel(p){
+  const e=num(p.lu), g=num(p.nb); if(e==null||g==null) return null;
+  const base=e*g, j=num(cur.q.r22), s=num(cur.q.r23);
+  if(p.freq==="par an") return base;
+  if(p.freq==="par jour") return (j!=null&&s!=null)? base*j*s : null;
+  if(p.freq==="par semaine") return s!=null? base*s : null;
+  return null;
+}
+function renderC(){
+  const ps = cur.postes;
+  return `<div class="card">
+    <div class="f"><label class="lbl">Entreprise</label>${fText("q.r7", cur.q.r7||"", {ph:"Nom de l'entreprise", nomic:true})}</div>
+    <div class="hint" style="margin:-4px 0 14px">Visite du ${escH(fmtDate(cur.q.r5))}</div>
+    <h2 style="font-size:17px;color:var(--bord);margin-bottom:4px">Base de calcul</h2>
+    <div class="hint">Jours et semaines d'ouverture : également écrits dans « Questions entretien » à l'import.</div>
+    <div class="grid2">
+      <div class="f"><label class="lbl">Jours d'ouverture / sem.</label>${fText("q.r22", cur.q.r22||"", {num:true, nomic:true})}</div>
+      <div class="f"><label class="lbl">Semaines d'ouverture / an</label>${fText("q.r23", cur.q.r23||"", {num:true, nomic:true})}</div>
+    </div>
+    <div class="f" style="margin-bottom:0"><label class="lbl">Volume annuel facturé (contrôle)</label><div class="hint">Facultatif, non écrit dans l'Excel : sert uniquement au taux de couverture ci-dessous.</div>${fText("volFact", cur.volFact||"", {num:true, unit:"m³/an", nomic:true})}</div>
+    <div class="kpis">
+      <div class="kpi"><div class="v" id="k-tot">–</div><div class="l">Total estimé (m³/an)</div></div>
+      <div class="kpi"><div class="v" id="k-cov">–</div><div class="l">Couverture de la facture<br>(hors fuite / non identifié)</div><div class="bar"><i id="k-bar" style="width:0"></i></div></div>
+    </div>
+  </div>
+  ${ps.length? ps.map((p,i)=>renderPoste(p,i)).join("") : `<div class="empty">Aucun poste. Un poste = un usage de l'eau.<br>Le plus rapide : « Poste en une phrase », puis dicter avec le micro du clavier.</div>`}
+  <div class="btns">
+    <button class="btn pri" data-act="phrase" data-i="-1">${I.tn} Poste en une phrase</button>
+    <button class="btn sec2" data-act="addp">${I.plus} Poste vide</button>
+  </div>
+  ${ps.length>15?`<div class="info" style="margin-top:10px">Plus de 15 postes : la macro ajoutera les lignes manquantes au tableau de l'Excel.</div>`:""}`;
+}
+function renderPoste(p,i){
+  const open = !!ui.popen[i], b="postes."+i+".";
+  return `<div class="poste">
+    <button class="ph" data-act="togp" data-i="${i}"><span class="num">${i+1}</span>
+      <span class="pt"><b id="pt-${i}">${escH((p.cat||"Catégorie ?").trim())}${p.desc?" · "+escH(p.desc):""}</b><span>${escH([p.freq,p.mes].filter(Boolean).join(" · "))}</span></span>
+      <span class="pv" id="pv-${i}">–</span>${I.chev.replace('class="chev"','class="chev" style="transform:rotate('+(open?180:0)+'deg)"')}</button>
+    ${open?`<div class="pb">
+      <button class="btn sec2 block" data-act="phrase" data-i="${i}" style="margin-bottom:12px">${I.tn} Remplir avec une phrase</button>
+      <div class="f"><label class="lbl">Catégorie</label>${fSelect(b+"cat", p.cat||"", CATS)}</div>
+      <div class="f"><label class="lbl">Description</label>${fText(b+"desc", p.desc||"", {area:true, rows:3, ph:"ex. plonge du soir, lave-mains labo…"})}</div>
+      <div class="grid2">
+        <div class="f"><label class="lbl">Volume par unité</label>${fText(b+"lu", p.lu||"", {num:true, unit:"L"})}</div>
+        <div class="f"><label class="lbl">Nom de l'unité</label>${fText(b+"unit", p.unit||"", {list:"dl-unit", ph:"chasse, cycle…", nomic:true})}</div>
+      </div>
+      <button class="calc" data-act="calc" data-i="${i}">${I.calc} Calculer le volume (débit × durée)</button>
+      <div class="grid2" style="margin-top:6px">
+        <div class="f"><label class="lbl">Nombre d'unités</label>${fText(b+"nb", p.nb||"", {num:true})}</div>
+        <div class="f"><label class="lbl">Fréquence</label>${fSelect(b+"freq", p.freq||"", FREQ)}</div>
+      </div>
+      <div class="est" id="est-${i}"></div>
+      <div class="grid2">
+        <div class="f"><label class="lbl">Mesure ou estimation</label>${fSelect(b+"mes", p.mes||"", MES)}</div>
+        <div class="f"><label class="lbl">Eau du réseau ?</label>${fSelect(b+"res", p.res||"", ["oui","non"])}</div>
+      </div>
+      <div class="f"><label class="lbl">Température d'utilisation</label><div class="hint">Uniquement si eau chaude ; vide si eau froide.</div>${fText(b+"temp", p.temp||"", {num:true, unit:"°C"})}</div>
+      <div class="f"><label class="lbl">Description de l'équipement</label>${fText(b+"eq", p.eq||"", {area:true, rows:2, ph:"marque, débit, âge, état…"})}</div>
+      <div class="row" style="justify-content:space-between">
+        <button class="del" data-act="dupp" data-i="${i}" style="color:var(--navy)">${I.plus} Dupliquer</button>
+        <button class="del" data-act="delp" data-i="${i}">${I.trash} Supprimer le poste</button>
+      </div>
+    </div>`:""}
+  </div>`;
+}
+
+/* --- Pistes --- */
+function renderA(){
+  const a = cur.pistes;
+  return `<div class="btns" style="margin-bottom:12px">
+      <button class="btn pri" data-act="banque">${I.ta} Depuis la banque</button>
+      <button class="btn sec2" data-act="addlibre">${I.plus} Piste libre</button></div>
+    ${a.length? a.map((x,i)=>`<div class="card pc">
+      <div class="meta"><span class="tag">${x.src==="banque"?"Banque de préconisations":"Piste libre"}</span><span class="tag">${escH(fmtTs(x.ts))}</span></div>
+      <div class="f"><label class="lbl">Piste d'action</label>${fText("pistes."+i+".titre", x.titre||"", {area:true, rows:2})}</div>
+      <div class="grid2">
+        <div class="f"><label class="lbl">Poste concerné</label>${fSelect("pistes."+i+".poste", x.poste||"", CATS.concat(["Plusieurs postes"]))}</div>
+        <div class="f"><label class="lbl">Type</label>${fSelect("pistes."+i+".type", x.type||"", TYPES)}</div>
+      </div>
+      <div class="f"><label class="lbl">Idée, chiffres, fournisseur…</label>${fText("pistes."+i+".com", x.com||"", {area:true, rows:2})}</div>
+      <button class="del" data-act="dela" data-i="${i}">${I.trash} Supprimer</button></div>`).join("")
+    : `<div class="empty">Notez ici les pistes de réduction qui vous viennent pendant la visite.</div>`}`;
+}
+
+/* --- Notes --- */
+function renderN(){
+  const n = cur.notes;
+  return `<button class="btn pri block" data-act="addn" style="margin-bottom:12px">${I.plus} Nouvelle note</button>
+    ${n.length? n.map((x,i)=>`<div class="card"><div class="ts">${escH(fmtTs(x.ts))}</div>
+      ${fText("notes."+i+".txt", x.txt||"", {area:true, rows:4, ph:"Note libre sur l'entreprise…"})}
+      <button class="del" data-act="deln" data-i="${i}">${I.trash} Supprimer</button></div>`).join("")
+    : `<div class="empty">Contexte, interlocuteurs, contraintes, particularités du site : tout ce qui ne rentre pas ailleurs.</div>`}`;
+}
+
+/* ---------- Calculs dérivés (sans re-rendu) ---------- */
+function updateDerived(){
+  const nm=$("#vname"); if(nm) nm.textContent=vName(cur);
+  // Badges
+  const vis = ALLQ.filter(visible);
+  const bq=$("#b-q"); if(bq) bq.textContent = vis.filter(answered).length+"/"+vis.length;
+  const bc=$("#b-c"); if(bc) bc.textContent = cur.postes.length||"";
+  const ba=$("#b-a"); if(ba) ba.textContent = cur.pistes.length||"";
+  const bn=$("#b-n"); if(bn) bn.textContent = cur.notes.length||"";
+  [["#b-c",cur.postes.length],["#b-a",cur.pistes.length],["#b-n",cur.notes.length]].forEach(([s,n])=>{const e=$(s); if(e) e.classList.toggle("hidden",!n);});
+  if(ui.tab==="q"){
+    SECTIONS.forEach((s,si)=>{ const e=$("#sc-"+si); if(!e) return; const v=s.items.filter(i=>i.type!=="info"&&visible(i)); const d=v.filter(answered).length; e.textContent=d+"/"+v.length; e.classList.toggle("full", d===v.length); });
+  }
+  if(ui.tab==="c"){
+    let tot=0, hors=0, any=false;
+    cur.postes.forEach((p,i)=>{
+      const a=annuel(p); const pv=$("#pv-"+i); if(pv) pv.textContent = a==null?"–":fmtN(a/1000)+" m³";
+      if(a!=null){ any=true; tot+=a; if(!["Fuite","Non identifié"].includes(p.cat)) hors+=a; }
+      const est=$("#est-"+i);
+      if(est){
+        let why="";
+        if(num(p.lu)==null||num(p.nb)==null) why="Renseignez le volume par unité et le nombre d'unités.";
+        else if(!p.freq) why="Choisissez la fréquence.";
+        else if(a==null) why="Renseignez les jours et semaines d'ouverture (en haut de l'onglet).";
+        est.innerHTML = a==null ? escH(why) : `Estimation : <b>${fmtN(a/1000,2)} m³/an</b> (${fmtN(a,0)} L)`;
+      }
+      const pt=$("#pt-"+i); if(pt) pt.textContent=(p.cat||"Catégorie ?").trim()+(p.desc?" · "+p.desc:"");
+    });
+    const kt=$("#k-tot"); if(kt) kt.textContent = any? fmtN(tot/1000):"–";
+    const vf=num(cur.volFact), kc=$("#k-cov"), kb=$("#k-bar");
+    if(kc){ if(vf&&any){ const r=hors/(vf*1000); kc.textContent=fmtN(r*100,0)+" %"; kb.style.width=Math.min(100,r*100)+"%"; kb.classList.toggle("hi", r>1.1); } else { kc.textContent="–"; kb.style.width="0"; } }
+  }
+}
+
+/* ---------- Dictée vocale ---------- */
+const NW = {"zéro":0,"zero":0,"un":1,"une":1,"deux":2,"trois":3,"quatre":4,"cinq":5,"six":6,"sept":7,"huit":8,"neuf":9,"dix":10,"onze":11,"douze":12,"treize":13,"quatorze":14,"quinze":15,"seize":16,"vingt":20,"vingts":20,"trente":30,"quarante":40,"cinquante":50,"soixante":60};
+function wordsToNumber(s){
+  const t=s.toLowerCase().split(/[\s-]+/).filter(Boolean); let total=0, curv=0, found=false, prev="";
+  for(const w of t){
+    if(w==="et"){ prev=w; continue; }
+    if(w==="cent"||w==="cents"){ curv=(curv||1)*100; found=true; }
+    else if(w==="mille"){ total+=(curv||1)*1000; curv=0; found=true; }
+    else if(w in NW){ if((w==="vingt"||w==="vingts") && prev==="quatre"){ curv=curv-4+80; } else curv+=NW[w]; found=true; }
+    prev=w;
+  }
+  return found? total+curv : null;
+}
+function parseSpokenNumber(s){
+  s=s.toLowerCase().replace(/virgule/g,",").replace(/(\d)[\s  ](?=\d{3}\b)/g,"$1");
+  const m=s.match(/-?\d+(?:[.,]\d+)?/); if(m) return +m[0].replace(",",".");
+  return wordsToNumber(s);
+}
+let rec=null, recBtn=null;
+function dictate(btn){
+  const el=document.getElementById(btn.dataset.mic); if(!el) return;
+  if(rec){ const same=recBtn===btn; try{rec.stop();}catch(e){} if(same) return; }
+  const r=new SR(); r.lang="fr-FR"; r.interimResults=true; r.continuous=false; r.maxAlternatives=1;
+  const isNum = el.dataset.num==="1", base = el.value;
+  r.onresult = e => {
+    let fin="", inter="";
+    for(let i=0;i<e.results.length;i++){ const t=e.results[i][0].transcript; if(e.results[i].isFinal) fin+=t; else inter+=t; }
+    const said=(fin||inter).trim(); if(!said) return;
+    if(isNum){ const n=parseSpokenNumber(said); if(n!=null) el.value=String(n).replace(".",","); }
+    else { const add = base ? said : said.charAt(0).toUpperCase()+said.slice(1); el.value = base ? base.replace(/\s+$/,"")+" "+add : add; }
+    el.dispatchEvent(new Event("input",{bubbles:true}));
+  };
+  r.onerror = e => {
+    if(e.error==="not-allowed"||e.error==="service-not-allowed"){ store.settings.mic=false; persist(); render(); toast("Micro bloqué par le navigateur : boutons micro désactivés. Utilisez le micro du clavier."); }
+    else if(e.error==="no-speech") toast("Rien entendu, réessayez.");
+    else if(e.error==="network") toast("Dictée indisponible sans réseau : utilisez le micro du clavier.");
+    else if(e.error!=="aborted") toast("Dictée indisponible ("+e.error+")");
+  };
+  r.onend = () => { btn.classList.remove("on"); if(rec===r){ rec=null; recBtn=null; } };
+  try{ r.start(); rec=r; recBtn=btn; btn.classList.add("on"); }catch(err){ toast("Dictée indisponible : utilisez le micro du clavier."); }
+}
+
+/* =====================================================================
+   Analyse d'une phrase décrivant un poste de consommation d'eau
+   Ex. « nettoyeur haute pression de débit 10 litres par minute utilisé 10 minutes
+         par jour, 5 jours par semaine, et un vendredi sur deux il est utilisé 1h »
+   → Volume par unité 10 L, unité « minute », 75 unités, « par semaine »
+   Fonctionne hors ligne, sans IA : règles explicites, chaque étape est expliquée.
+   ===================================================================== */
+const PJ = (function(){
+const DAYS=["lundi","mardi","mercredi","jeudi","vendredi","samedi","dimanche"];
+const MONTHS=["janvier","fevrier","mars","avril","mai","juin","juillet","aout","septembre","octobre","novembre","decembre"];
+const NW={zero:0,un:1,une:1,deux:2,trois:3,quatre:4,cinq:5,six:6,sept:7,huit:8,neuf:9,dix:10,onze:11,douze:12,treize:13,quatorze:14,quinze:15,seize:16,vingt:20,vingts:20,trente:30,quarante:40,cinquante:50,soixante:60};
+const W="(?:zero|une?|deux|trois|quatre|cinq|six|sept|huit|neuf|dix|onze|douze|treize|quatorze|quinze|seize|vingts?|trente|quarante|cinquante|soixante|cents?|mille)";
+const RE_W=new RegExp("\\b"+W+"(?:[\\s-]+(?:et[\\s-]+)?"+W+")*\\b","g");
+function words(s){
+  const t=s.split(/[\s-]+/).filter(Boolean); let total=0,cur=0,prev="";
+  for(const w of t){
+    if(w==="et"){prev=w;continue;}
+    if(w==="cent"||w==="cents") cur=(cur||1)*100;
+    else if(w==="mille"){ total+=(cur||1)*1000; cur=0; }
+    else if(w in NW){ if((w==="vingt"||w==="vingts")&&prev==="quatre") cur=cur-4+80; else cur+=NW[w]; }
+    prev=w;
+  }
+  return total+cur;
+}
+const DJ="(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)";
+const MO="(janvier|fevrier|mars|avril|mai|juin|juillet|aout|septembre|octobre|novembre|decembre)";
+const N="(\\d+(?:\\.\\d+)?)";
+const VOLU="(litres?|l|lt|m3|metres? cubes?)";
+const VOLX=VOLU+"(?:\\s+d\\s*eau)?";   // « 30 litres d'eau par fournée »
+const PER="\\s*(?:\\/|par|a la|a l|de l|chaque)\\s*";
+const PERIOD="(jours?|j|semaines?|sem|mois|ans?|annees?)";
+const TU="(heures?|h|minutes?|min|mn|secondes?|sec|s)";
+const per1 = p => p[0]==="j"?"jour": p.startsWith("sem")?"semaine": p==="mois"?"mois":"an";
+const minOf = (v,u) => u[0]==="h" ? v*60 : (u[0]==="s" ? v/60 : v);
+const sing = w => w.replace(/(s|x)$/,"");
+const NOT_NOUN=/^(fois|litres?|minutes?|heures?|secondes?|jours?|semaines?|mois|ans?|annees?|min|mn|sec|lt|environ|peu|pres)$/;
+const fr = n => (Math.round(n*100)/100).toString().replace(".",",");
+
+// Catégories (libellés exacts de l'onglet Listes) – première règle qui correspond
+const CATRULES=[
+ [/\bfuites?\b|qui coule|qui fuit/, "Fuite", ""],
+ [/haute pression|karcher|nettoyeur hp/, t=>/vehicule|voiture|camion|carross|engin/.test(t)?"Nettoyage de véhicule":/\bsols?\b|surface/.test(t)?"Nettoyage des sols et surfaces":"Autre nettoyage", "Nettoyeur haute pression"],
+ [/shampo|coiff/, "Bac à shampoing", "Bac à shampoing"],
+ [/chasses?\b|toilettes?|\bwc\b|urinoir/, "Toilettes", "Toilettes"],
+ [/lave[ -]?(vaisselle|batterie|ustensiles?)/, "Plonge machine", "Lave-vaisselle / lave-batterie"],
+ [/lave[ -]?mains?|lavage des mains|\bmains\b/, "Lavage des mains", "Lave-mains"],
+ [/douchette|plonge|evier|prerin|prelav/, "Plonge manuelle", "Plonge manuelle"],
+ [/douches?\b/, "Douche", "Douche"],
+ [/lave[ -]?linge|machine a laver|\blinge\b|serviettes?|pressing|laverie/, "Lavage Linge", "Lave-linge"],
+ [/\bcuves?\b|\bnep\b|\bcip\b|fermenteur/, "Nettoyage de cuves", "Nettoyage de cuves"],
+ [/\bsols?\b|serpill|autolaveuse|balai|surfaces?/, "Nettoyage des sols et surfaces", "Nettoyage des sols"],
+ [/outils?|ustensiles?|pinceaux?|rouleaux?/, "Nettoyage des outils", "Nettoyage des outils"],
+ [/\bscies?\b|decoupe|usinage|poliss|fraiseuse|meule|jet d eau|debiteuse/, "Découpe/usinage", "Découpe / usinage"],
+ [/arros|jardin|espaces? verts?|pelouse|massifs?/, "Arrosage espaces verts", "Arrosage"],
+ [/refroidi|climatis|groupe froid|condenseur|tour aero/, "Refroidissement", "Refroidissement"],
+ [/sterili|pasteuri|autoclave/, "Stérilisation/pasteurisation", "Stérilisation / pasteurisation"],
+ [/cuisson|bouillo|cuiseur|marmite/, "Cuisson", "Cuisson"],
+ [/fruits?|legumes?|salades?/, "Lavage de fruits/légumes", "Lavage fruits et légumes"],
+ [/piscine|bassin|\bspa\b/, "Remplissage ou appoint bassin/piscine", "Bassin / piscine"],
+ [/vehicule|voiture|camion|lavage auto/, "Nettoyage de véhicule", "Lavage de véhicules"],
+ [/abreuv|animaux|betail|chevaux|vaches/, "Abreuvement animaux", "Abreuvement"],
+ [/poussiere/, "Abattage des poussières", "Abattage des poussières"],
+ [/grumes?|scierie/, "Arrosage des grumes en scierie", "Arrosage des grumes"],
+ [/recette|petrin|petriss|ingredient|\bpates?\b|empatage|brassin|\bmout\b|farine/, "Recette (incompressible) ", "Recette"],
+ [/goutte a goutte/, "Fuite", ""],
+ [/nettoy|lavage|rincage/, "Autre nettoyage", ""]
+];
+// Entités pour « par personne », « par machine »… et la façon dont on les compte
+const ENT=[[/^(personne|salarie|employe|apprenti|compagnon)s?$/,"(?:personnes?|salaries?|employes?|apprentis?|compagnons?)"],[/^chevaux?|cheval$/,"(?:chevaux|chevals?)"],[/^animal|animaux$/,"(?:animaux|animals?)"],[/^(.+?)s?$/,null]];
+
+
+function normalize(s){
+  let t=" "+String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"")+" ";
+  t=t.replace(/m³/g,"m3").replace(/m²/g,"m2").replace(/\bmetres?\s+carres?\b/g,"m2").replace(/\bm\s+2\b/g,"m2").replace(/[’'`]/g," ").replace(/[«»"();!?]/g," ");
+  t=t.replace(/(\d)\s*virgule\s*(\d)/g,"$1.$2").replace(/(\d),(\d)/g,"$1.$2").replace(/(\d)[\s  ](?=\d{3}\b)/g,"$1");
+  t=t.replace(/\b(?:une|1)\s+demi[- ]heure\b/g,"30 minutes").replace(/\bdemi[- ]heure\b/g,"30 minutes");
+  t=t.replace(/\btrois quarts? d\s*heure\b/g,"45 minutes").replace(/\b(?:un|1)\s+quart d\s*heure\b/g,"15 minutes");
+  t=t.replace(RE_W, m=>String(words(m)));
+  t=t.replace(/(\d+)\s*(?:h|heures?)\s*et\s*demie?\b/g,(m,a)=>(+a*60+30)+" minutes");
+  t=t.replace(/(\d+)\s*(?:h|heures?)\s*et\s*quart\b/g,(m,a)=>(+a*60+15)+" minutes").replace(/(\d+)\s*(?:h|heures?)\s*moins le quart\b/g,(m,a)=>(+a*60-15)+" minutes");
+  t=t.replace(/\bpar\s+([a-z-]{3,})\s+et\s+par\s+(jour|semaine|mois|an)\b/g,"par $2 par $1");
+  t=t.replace(/(\d+)\s*(?:h|heures?)\s*(\d{1,2})(?:\s*(?:minutes?|min|mn)\b)?/g,(m,a,b)=>(+a*60+ +b)+" minutes");
+  t=t.replace(/\s+/g," ");
+  return t;
+}
+
+function analyse(text, ctx){
+  ctx=ctx||{};
+  const origWords=String(text||"").toLowerCase().split(/[^a-z\u00c0-\u017f-]+/).filter(Boolean);
+  const orig = w => { if(!w) return w; const f=origWords.find(o=>{ const n=o.normalize("NFD").replace(/[\u0300-\u036f]/g,""); return n===w||n===w+"s"||n===w+"x"; }); return f? sing(f) : w; };
+  let t=normalize(text);
+  const out={understood:[], calc:[], warn:[], fields:{}, ok:false, norm:t};
+  t=t.replace(/(\d+(?:\.\d+)?)\s*(?:et|ou|\/|-)\s*(\d+(?:\.\d+)?)\s*(litres?|l)\b/g,(m,a,b,u)=>{ const v=(+a + +b)/2; out.warn.push("Deux volumes cités ("+fr(+a)+" et "+fr(+b)+" L) : moyenne de "+fr(v)+" L retenue, à ajuster selon l'usage réel."); return v+" "+u; });
+  out.norm=t; let M=t;
+  const take=(re,fn)=>{ for(const m of [...M.matchAll(re)]){ if(fn(m)!==false) M=M.slice(0,m.index)+"#".repeat(m[0].length)+M.slice(m.index+m[0].length); } };
+  let rate=null, volUse=null, volPeriod=null, volSurf=null, surface=null, perOcc=null, continu=false, seasonWeeks=null, seasonTxt="";
+  let days=null, daySet=null, daily=false, weekFactor=1, wfTxt="", dayFrac=null, mult=null;
+  const excs=[], durs=[], uses={};
+
+  take(/\ben continu\b|\b24\s*h?\s*(?:\/|sur)\s*24\b|\bjour et nuit\b|\ben permanence\b/g, ()=>{ continu=true; });
+  take(new RegExp("(?:debit\\s*(?:de|d|:)?\\s*)?"+N+"\\s*"+VOLX+"(?:"+PER+"(minutes?|min|mn|heures?|h|secondes?|sec|s)|\\s+(minutes?|min|heures?|h))\\b","g"), m=>{ m[3]=m[3]||m[4];
+    const f=m[2][0]==="m"?1000:1, v=+m[1]*f, u=m[3][0];
+    rate = u==="h" ? {lu:v, unit:"heure", perMin:v/60} : u==="s" ? {lu:v*60, unit:"minute", perMin:v*60} : {lu:v, unit:"minute", perMin:v};
+    out.understood.push("Débit : "+fr(rate.lu)+" L/"+(rate.unit==="heure"?"h":"min"));
+  });
+  if(!rate) take(new RegExp(N+"\\s*"+VOLX+"\\s+(?:[a-z]+\\s+){0,2}en\\s+"+N+"\\s*"+TU+"\\b","g"), m=>{
+    const f=m[2][0]==="m"?1000:1, v=+m[1]*f, T=+m[3], u=m[4][0];
+    rate = u==="h" ? {lu:v/T, unit:"heure"} : {lu: u==="s" ? v/(T/60) : v/T, unit:"minute"};
+    out.understood.push("Débit mesuré : "+fr(v)+" L en "+fr(T)+" "+m[4]+" = "+fr(rate.lu)+" L/"+(rate.unit==="heure"?"h":"min"));
+  });
+  if(!rate) take(new RegExp("\\bdebit\\s*(?:de|d|:)?\\s*"+N+"(?!\\s*"+VOLU+")","g"), m=>{ rate={lu:+m[1],unit:"minute",perMin:+m[1]}; out.understood.push("Débit : "+fr(+m[1])+" L/min"); out.warn.push("Unité du débit non précisée : litres par minute supposés."); });
+  // Nettoyage au m² : « 7 L par m² » + « 600 m² »
+  take(new RegExp(N+"\\s*"+VOLX+"\\s*(?:\\/|par|au|le|pour 1|pour un|chaque)\\s*m2\\b","g"), m=>{ const f=m[2][0]==="m"?1000:1; volSurf=+m[1]*f; out.understood.push("Volume : "+fr(volSurf)+" L par m²"); });
+  take(new RegExp(N+"\\s*m2\\b","g"), m=>{ surface=(surface||0)+ +m[1]; out.understood.push("Surface : "+fr(+m[1])+" m²"); });
+  take(new RegExp("\\b"+N+"\\s+([a-z]{3,})\\s+(?:de|d)\\s+"+N+"\\s*"+VOLX+"(?:"+PER+PERIOD+"\\b)?","g"), m=>{
+    if(NOT_NOUN.test(m[2])) return false;
+    const f=m[4][0]==="m"?1000:1, noun=orig(sing(m[2])); volUse={v:+m[3]*f, noun};
+    if(m[5]){ const p=per1(m[5]); uses[p]={n:+m[1], noun}; out.understood.push(fr(+m[1])+" "+m[2]+" de "+fr(volUse.v)+" L par "+p); }
+    else { perOcc=+m[1]; out.understood.push(fr(+m[1])+" "+m[2]+" de "+fr(volUse.v)+" L à chaque fois"); }
+  });
+  take(new RegExp(N+"\\s*"+VOLX+PER+PERIOD+"\\b","g"), m=>{ const f=m[2][0]==="m"?1000:1; volPeriod={v:+m[1]*f, per:per1(m[3])}; out.understood.push("Volume : "+fr(volPeriod.v)+" L par "+volPeriod.per); });
+  take(new RegExp("\\b(?:de|d|entre)\\s+"+MO+"\\s+(?:a|au|jusqu a|et)\\s+"+MO+"\\b","g"), m=>{ const a=MONTHS.indexOf(m[1]), b=MONTHS.indexOf(m[2]); const n=((b-a+12)%12)+1; seasonWeeks=n*52/12; seasonTxt="de "+m[1]+" à "+m[2]+" ("+n+" mois)"; out.understood.push("Période : "+seasonTxt); });
+  take(new RegExp("\\b(?:pendant|sur)\\s+"+N+"\\s*(semaines?|mois)\\b|\\b"+N+"\\s*(semaines?|mois)\\s+par\\s+an\\b","g"), m=>{ const n=+(m[1]||m[3]), u=m[2]||m[4]; seasonWeeks = u==="mois"? n*52/12 : n; seasonTxt=fr(n)+" "+u+" par an"; out.understood.push("Période : "+seasonTxt); });
+  take(new RegExp("\\bdu\\s+"+DJ+"\\s+au\\s+"+DJ+"\\b","g"), m=>{ const a=DAYS.indexOf(m[1]), b=DAYS.indexOf(m[2]); daySet=[]; for(let i=a;;i=(i+1)%7){ daySet.push(i); if(i===b) break; } days=daySet.length; out.understood.push("Jours : du "+m[1]+" au "+m[2]+" ("+days+" j/sem.)"); });
+  take(/\b(\d+)\s*(?:jours?|j)\s*(?:(?:\/|par|dans la|a la|chaque)\s*(?:semaines?|sem)\b|sur 7\b)/g, m=>{ days=+m[1]; out.understood.push("Jours : "+days+" j/semaine"); });
+  take(/\ben semaine\b/g, ()=>{ if(days==null){ days=5; daySet=[0,1,2,3,4]; out.understood.push("Jours : en semaine (5 j)"); } });
+  take(/\btous les jours\b|\bchaque jour\b|\bquotidien\w*|\b(?:tous les|chaque) (?:soirs?|matins?)\b|\b(?:en|chaque) fin de journee\b/g, ()=>{ daily=true; });
+  // « 4 cycles le midi et 4 le soir » → 8 par jour ; « matin et soir » → 2 fois par jour
+  { let sum=0, noun="", parts=[];
+    take(/\b(\d+(?:\.\d+)?)\s*(?:([a-z]{3,})\s+)?(?:le|au|en|chaque)\s+(matin|midi|soir|apres-midi|nuit)s?\b/g, m=>{ if(m[2]&&NOT_NOUN.test(m[2])) return false; sum+=+m[1]; if(m[2]&&!noun) noun=orig(sing(m[2])); parts.push(m[1]+" le "+m[3]); });
+    if(sum && !uses.jour){ uses.jour={n:sum, noun}; out.understood.push(parts.join(" + ")+" = "+fr(sum)+(noun?" "+noun+(sum>1?"s":""):" fois")+" par jour"); }
+    take(/\b(?:le |au )?(matin|midi|soir|apres-midi)(?:\s*(?:,|et)\s*(?:le |au )?(?:matin|midi|soir|apres-midi))+\b/g, m=>{ const n=m[0].match(/matin|midi|soir|apres-midi/g).length; if(!uses.jour){ uses.jour={n, noun:""}; out.understood.push(m[0].trim()+" : "+n+" fois par jour"); } }); }
+  const occ=(p,n,txt)=>{ if(!uses[p]){ uses[p]={n, noun:""}; out.understood.push("Fréquence : "+txt); } };
+  take(/\btous les (?:15|14|quinze) jours\b|\bpar quinzaine\b/g, m=>occ("semaine",0.5,m[0].trim()));
+  take(/\btous les (\d+) jours\b/g, m=>occ("jour",1/+m[1],m[0].trim()));
+  take(/\btoutes les (\d+) semaines\b/g, m=>occ("semaine",1/+m[1],m[0].trim()));
+  take(/\b(?:toutes les|chaque) semaines?\b|\bhebdomadaire\w*/g, m=>occ("semaine",1,m[0].trim()));
+  take(/\b(?:tous les|chaque) mois\b|\bmensuel\w*/g, m=>occ("mois",1,m[0].trim()));
+  take(/\b(?:tous les|chaque) ans?\b|\bchaque annee\b|\bannuel\w*/g, m=>occ("an",1,m[0].trim()));
+  take(/\b(\d+)\s+jours?\s+sur\s+(\d+)\b/g, m=>{ dayFrac=+m[1]/+m[2]; out.understood.push("Fréquence : "+m[1]+" jour sur "+m[2]); });
+  take(/\b(\d+)\s+semaines?\s+sur\s+(\d+)\b/g, m=>{ weekFactor=+m[1]/+m[2]; wfTxt=m[1]+" semaine sur "+m[2]; out.understood.push("Fréquence : "+wfTxt); });
+  take(new RegExp("\\b(?:(\\d+)|le|les|chaque|tous les)\\s+"+DJ+"s?\\b(?:\\s+sur\\s+(\\d+))?","g"), m=>{
+    const k=(m[1]?+m[1]:1)/(m[3]?+m[3]:1); excs.push({day:DAYS.indexOf(m[2]), dayName:m[2], k, txt:m[0].trim().replace(/^1 /,m[3]?"un ":"le "), start:m.index, end:m.index+m[0].length, min:null});
+  });
+  take(new RegExp(N+"\\s*(fois|[a-z]{3,})(?:\\s+(?:de|d)\\s+[a-z]{3,})?\\s*(?:\\/|par|a la|chaque)\\s*"+PERIOD+"\\b","g"), m=>{
+    const noun=m[2]; if(/^(heures?|minutes?|secondes?|litres?|min|sec)$/.test(noun)) return false;
+    const p=per1(m[3]); uses[p]={n:+m[1], noun: noun==="fois"?"":orig(sing(noun))};
+    out.understood.push((noun==="fois"?fr(+m[1])+" fois":fr(+m[1])+" "+noun)+" par "+p);
+  });
+  take(new RegExp(N+"\\s*"+VOLX+"\\s*(?:\\/|par|a chaque|pour chaque|chaque|pour une?|pour 1)\\s*([a-z]{3,})","g"), m=>{
+    if(NOT_NOUN.test(m[3])) return false; const f=m[2][0]==="m"?1000:1; volUse={v:+m[1]*f, noun:orig(sing(m[3])), nn:sing(m[3])}; out.understood.push("Volume : "+fr(volUse.v)+" L par "+volUse.noun);
+  });
+  if(!volUse) take(new RegExp("\\b([a-z]{3,})\\s+(?:de|d)\\s+"+N+"\\s*"+VOLU+"\\b","g"), m=>{
+    if(/^(debit|consommation|total|environ|volume|plus|moins)$/.test(m[1])) return false;
+    const f=m[3][0]==="m"?1000:1; volUse={v:+m[2]*f, noun:orig(sing(m[1]))}; out.understood.push("Volume : "+fr(volUse.v)+" L par "+volUse.noun);
+  });
+  take(new RegExp(N+"\\s*"+TU+"\\b(?:\\s*(?:\\/|par|a chaque|pour chaque|chaque)\\s*([a-z]+))?","g"), m=>{
+    let per=null, perUse=false; if(m[3]){ if(/^(jours?|j|semaines?|sem|mois|ans?|annees?)$/.test(m[3])) per=per1(m[3]); else perUse=true; }
+    durs.push({min:minOf(+m[1],m[2]), per, perUse, txt:m[0].trim(), start:m.index, end:m.index+m[0].length, used:false});
+  });
+  if(!volUse && !volPeriod) take(new RegExp(N+"\\s*"+VOLX+"\\b","g"), m=>{ const f=m[2][0]==="m"?1000:1; volUse={v:+m[1]*f, noun:""}; out.understood.push("Volume : "+fr(volUse.v)+" L"); });
+  const pe=t.match(/\bpar (personne|salarie|employe|apprenti|cheval|machine|poste|tete|animal|vache|appareil|lave-mains|wc|toilette|douche|robinet|cabine)s?\b/);
+  if(pe){ const fam=ENT.find(e=>e[0].test(pe[1])); const re=fam[1]||("(?:"+pe[1]+"s?|"+pe[1]+"x)");
+    const c=t.match(new RegExp("\\b(\\d+)\\s+"+re+"\\b(?!\\s*(?:\\/|par|a la|chaque)\\s*(?:jours?|semaines?|mois|ans?)\\b)")); if(c){ mult=+c[1]; out.understood.push("Nombre : "+c[1]+" "+pe[1]+(mult>1?"s":"")); } }
+  if(!mult && /\bchacune?s?\b|\bpar appareil\b|\bpar poste\b/.test(t)){
+    const m=M.match(/\b(\d+)\s+([a-z][a-z-]{2,})/); if(m && !NOT_NOUN.test(m[2])){ mult=+m[1]; out.understood.push("Nombre d'équipements : "+mult+" "+m[2]+" (chacun)"); }
+  }
+
+  if(volUse && volUse.nn && !perOcc && !Object.values(uses).some(u=>u.noun && u.noun.normalize("NFD").replace(/[\u0300-\u036f]/g,"")===volUse.nn)){
+    const c=t.match(new RegExp("\\b(\\d+(?:\\.\\d+)?)\\s+"+volUse.nn+"[sx]?\\b(?!\\s*(?:\\/|par|a la|chaque)\\s*(?:jours?|semaines?|mois|ans?)\\b)"));
+    if(c){ perOcc=+c[1]; out.understood.push("Nombre : "+c[1]+" "+volUse.noun+(perOcc>1?"s":"")+" à chaque fois"); }
+  }
+  // Durées : rattachement aux exceptions (« un vendredi sur deux … 1 h »), le reste = durée habituelle
+  excs.sort((a,b)=>a.start-b.start); durs.sort((a,b)=>a.start-b.start);
+  excs.forEach((e,i)=>{
+    const next=excs[i+1];
+    let d=durs.find(d=>!d.used && d.start>=e.end && d.start-e.end<=60 && (!next||d.start<next.start));
+    if(!d){ d=[...durs].reverse().find(d=>!d.used && d.end<=e.start && e.start-d.end<=20); if(d && durs.filter(x=>!x.used).length<2) d=null; }
+    if(d){ d.used=true; e.min=d.min; }
+  });
+  const base=durs.find(d=>!d.used);
+  if(base) out.understood.push("Durée : "+fr(base.min)+" min"+(base.per?" par "+base.per:base.perUse?" par utilisation":""));
+  excs.forEach(e=>{ out.understood.push("Exception : "+e.txt+(e.min!=null?" → "+fr(e.min)+" min":" (durée non trouvée)")); if(e.min==null) out.warn.push("Pour « "+e.txt+" », aucune durée trouvée : exception ignorée."); });
+
+  // Catégorie / description
+  for(const [re,cat,label] of CATRULES){ if(re.test(t)){ out.fields.cat = typeof cat==="function"?cat(t):cat; if(label) out.fields.desc=label; break; } }
+
+  // ---------- Calcul ----------
+  let mode=null, unit="", lu=null;
+  if(rate){ mode="rate"; lu=rate.lu; unit=rate.unit; }
+  else if(volSurf!=null){ mode="use"; lu=volSurf; unit="m²"; if(surface==null) out.warn.push("Surface non trouvée (ex. « 600 m² ») : nombre de m² à compléter."); }
+  else if(volUse){ mode="use"; lu=volUse.v; }
+  else if(volPeriod){ mode="use"; lu=volPeriod.v; unit=volPeriod.per; if(!uses[volPeriod.per]) uses[volPeriod.per]={n:1,noun:volPeriod.per}; }
+  if(!mode){ out.warn.push("Aucun volume ni débit trouvé (ex. « 6 litres par chasse » ou « débit 10 litres par minute »)."); return finish(); }
+  if(mode==="use"){ const u=Object.values(uses).find(x=>x.noun); unit = unit || (volUse&&volUse.noun) || (u&&u.noun) || "utilisation"; }
+
+  // Usages qui tournent 7 j/7 (arrosage, animaux, fuites) et toute l'année (animaux, fuites)
+  const cat=out.fields.cat||"";
+  const allWeek=["Arrosage espaces verts","Abreuvement animaux","Fuite"].includes(cat);
+  const allYear=["Abreuvement animaux","Fuite"].includes(cat);
+  if(mode==="rate" && cat==="Fuite" && !base && !continu){ continu=true; out.understood.push("Fuite : écoulement continu supposé"); }
+
+  let qDay=null, qWeek=null, qMonth=null, qYear=null;
+  const qn = mode==="rate" ? "min" : (volSurf!=null ? "passage" : (unit||"utilisation"));
+  const pl = (n,u) => (u==="min"||u==="m²") ? u : (n>1 && !/[sx]$/.test(u) ? u+"s" : u);
+  if(mode==="rate"){
+    if(continu && !base){ qDay=1440; out.calc.push("Fonctionnement continu : 24 h × 60 = 1 440 min par jour"); }
+    else if(!base && excs.some(e=>e.min!=null) && days==null && !daily){
+      qWeek=0; excs.filter(e=>e.min!=null).forEach(e=>{ qWeek+=e.min*e.k; out.calc.push(e.txt+" : "+fr(e.min)+" min"+(e.k!==1?" × "+fr(e.k):"")); });
+      out.calc.push("Soit "+fr(qWeek)+" min par semaine"); excs.length=0; }
+    else if(!base){ out.warn.push("Durée d'utilisation non trouvée (ex. « 10 minutes par jour »)."); }
+    else if(base.per==="jour") qDay=base.min;
+    else if(base.per==="semaine") qWeek=base.min;
+    else if(base.per==="mois") qMonth=base.min;
+    else if(base.per==="an") qYear=base.min;
+    else if(uses.jour){ qDay=base.min*uses.jour.n; out.calc.push(fr(base.min)+" min × "+fr(uses.jour.n)+" fois = "+fr(qDay)+" min par jour"); }
+    else if(uses.semaine){ qWeek=base.min*uses.semaine.n; out.calc.push(fr(base.min)+" min × "+fr(uses.semaine.n)+" fois = "+fr(qWeek)+" min par semaine"); }
+    else if(uses.mois){ qMonth=base.min*uses.mois.n; out.calc.push(fr(base.min)+" min × "+fr(uses.mois.n)+" fois = "+fr(qMonth)+" min par mois"); }
+    else if(uses.an){ qYear=base.min*uses.an.n; out.calc.push(fr(base.min)+" min × "+fr(uses.an.n)+" fois = "+fr(qYear)+" min par an"); }
+    else if(days!=null||daily||excs.length||dayFrac||continu){ qDay=base.min; out.calc.push(fr(base.min)+" min par jour d'utilisation"); }
+    else { out.warn.push("Fréquence non trouvée (« par jour », « par semaine »…) : à compléter."); }
+  } else {
+    if(uses.jour) qDay=uses.jour.n; else if(uses.semaine) qWeek=uses.semaine.n; else if(uses.mois) qMonth=uses.mois.n; else if(uses.an) qYear=uses.an.n;
+    else if(volSurf!=null && (days!=null||daily)){ qDay=1; out.calc.push("1 passage par jour"); }
+    else if(days!=null||daily){ qDay=1; out.warn.push("Nombre d'utilisations par jour non précisé : 1 par jour supposé."); }
+    else out.warn.push("Fréquence non trouvée (ex. « 40 chasses par jour », « 3 fois par semaine ») : à compléter.");
+    if(excs.some(e=>e.min!=null)) out.warn.push("Les exceptions en durée ne s'appliquent pas à un volume par utilisation : ignorées.");
+  }
+
+  // Passage à la semaine si jours / exceptions / saison / « 1 semaine sur 2 »
+  const needWeek = qWeek==null && qDay!=null && (days!=null || dayFrac!=null || (mode==="rate" && excs.some(e=>e.min!=null)) || weekFactor!==1 || seasonWeeks!=null || continu || allWeek);
+  if(needWeek){
+    let d=days, src="";
+    if(d==null && (continu||allWeek)){ d=7; src=" (7 j/7)"; }
+    if(d==null && dayFrac!=null){ const base7 = ctx.jours||7; d=base7*dayFrac; src=" ("+fr(dayFrac)+" × "+fr(base7)+" j"+(ctx.jours?" d'ouverture":"")+")"; }
+    if(d==null && daily && !ctx.jours){ d=7; src=" (7 j/7)"; }
+    if(d==null && ctx.jours){ d=ctx.jours; src=" (jours d'ouverture du questionnaire)"; }
+    if(d==null){ out.warn.push("Nombre de jours par semaine inconnu : calcul laissé « par jour »."); }
+    else {
+      qWeek=qDay*d; out.calc.push(fr(qDay)+" "+pl(qDay,qn)+" × "+fr(d)+" j"+src+" = "+fr(qWeek)+" "+pl(qWeek,qn)+" par semaine");
+      if(mode==="rate") excs.filter(e=>e.min!=null).forEach(e=>{
+        const inSet = daySet ? daySet.includes(e.day) : e.day < Math.round(d);
+        const adj = inSet ? (e.min-qDay)*e.k : e.min*e.k; qWeek+=adj;
+        out.calc.push(inSet ? "Exception "+e.txt+" : ("+fr(e.min)+" − "+fr(qDay)+") × "+fr(e.k)+" = "+(adj>=0?"+":"")+fr(adj)+" min"
+                            : "Exception "+e.txt+" (jour en plus) : "+fr(e.min)+" × "+fr(e.k)+" = +"+fr(adj)+" min");
+      });
+      if(excs.length && (mode==="rate") && excs.some(e=>e.min!=null)) out.calc.push("Soit "+fr(qWeek)+" min par semaine en moyenne");
+      if(weekFactor!==1){ qWeek*=weekFactor; out.calc.push(wfTxt+" : × "+fr(weekFactor)+" = "+fr(qWeek)+" "+qn+" par semaine"); }
+      qDay=null;
+    }
+  } else if(qWeek!=null && weekFactor!==1){ qWeek*=weekFactor; out.calc.push(wfTxt+" : × "+fr(weekFactor)+" = "+fr(qWeek)+" "+qn+" par semaine"); }
+
+  // Fréquence finale (logique de l'Excel : par jour × jours × semaines ; par semaine × semaines ; par an)
+  let nb=null, freq="";
+  if(seasonWeeks!=null && (qWeek!=null||qMonth!=null)){
+    nb = qWeek!=null ? qWeek*seasonWeeks : qMonth*seasonWeeks*12/52; freq="par an";
+    out.calc.push((qWeek!=null?fr(qWeek)+" par semaine × "+fr(seasonWeeks)+" semaines":fr(qMonth)+" par mois × "+fr(seasonWeeks*12/52)+" mois")+" ("+seasonTxt+") = "+fr(nb)+" "+qn+" par an");
+  } else if((continu||allYear) && qWeek!=null && !seasonWeeks){ nb=qWeek*52; freq="par an"; out.calc.push("Toute l'année : "+fr(qWeek)+" × 52 semaines = "+fr(nb)+" "+qn+" par an"); }
+  else if(qWeek!=null){ nb=qWeek; freq="par semaine"; }
+  else if(qDay!=null){ nb=qDay; freq="par jour"; }
+  else if(qMonth!=null){ nb=qMonth*12; freq="par an"; out.calc.push(fr(qMonth)+" par mois × 12 = "+fr(nb)+" par an"); }
+  else if(qYear!=null){ nb=qYear; freq="par an"; }
+
+  if(nb!=null && volSurf!=null){ if(surface!=null){ out.calc.push(fr(nb)+" "+pl(nb,"passage")+" × "+fr(surface)+" m² = "+fr(nb*surface)+" m² "+freq); nb*=surface; } else nb=null; }
+  if(nb!=null && perOcc && perOcc!==1){ out.calc.push(fr(nb)+" × "+fr(perOcc)+" "+pl(perOcc,unit)+" à chaque fois = "+fr(nb*perOcc)+" "+pl(nb*perOcc,unit)+" "+freq); nb*=perOcc; }
+  if(nb!=null && mult){ nb*=mult; out.calc.push("× "+mult+" équipements = "+fr(nb)); }
+  if(nb!=null && mode==="rate" && unit==="heure"){ nb=nb/60; out.calc.push("Converti en heures : "+fr(nb)+" h"); }
+  out.fields.lu = lu!=null ? String(Math.round(lu*10000)/10000) : undefined;
+  out.fields.unit = unit;
+  if(nb!=null){ out.fields.nb=String(Math.round(nb*100)/100); out.fields.freq=freq; }
+  if(nb!=null && lu!=null){
+    const L=lu*nb; out.calc.push("Volume : "+fr(lu)+" L/"+unit+" × "+fr(nb)+" "+pl(nb,unit)+" "+freq+" = "+fr(L)+" L "+freq);
+    out.ok=true;
+  }
+  return finish();
+
+  function finish(){ Object.keys(out.fields).forEach(k=>out.fields[k]===undefined&&delete out.fields[k]); return out; }
+}
+return {analyse, normalize};
+})();
+
+/* ---------- Modales ---------- */
+function modal(html){ closeModal(); const d=document.createElement("div"); d.className="ov"; d.id="ov"; d.innerHTML=`<div class="sheet">${html}</div>`; d.addEventListener("click",e=>{ if(e.target===d) closeModal(); }); document.body.appendChild(d); }
+function closeModal(){ const o=$("#ov"); if(o) o.remove(); }
+function mhead(t){ return `<h2><span>${escH(t)}</span><button class="x" data-act="closem" aria-label="Fermer">${I.x}</button></h2>`; }
+
+function openCalc(i){
+  modal(`${mhead("Volume par usage")}
+   <div class="hint" style="margin-bottom:12px">Mesurez le débit avec un récipient gradué, puis la durée d'un usage.</div>
+   <div class="grid2">
+     <div class="f"><label class="lbl">Volume du récipient</label><div class="row"><input class="fld grow" id="cv" inputmode="decimal" placeholder="ex. 10"><span class="unit">L</span></div></div>
+     <div class="f"><label class="lbl">Temps de remplissage</label><div class="row"><input class="fld grow" id="ct" inputmode="decimal" placeholder="ex. 12"><span class="unit">s</span></div></div>
+   </div>
+   <div class="f"><label class="lbl">Durée d'un usage</label><div class="row"><input class="fld grow" id="cu" inputmode="decimal" placeholder="ex. 30"><span class="unit">s</span></div></div>
+   <div class="res" id="cres">Débit : – L/min<br>Volume par usage : –</div>
+   <button class="btn pri block" data-act="calcok" data-i="${i}" id="cok" disabled>Reporter dans le poste</button>`);
+  const upd=()=>{ const v=num($("#cv").value), t=num($("#ct").value), u=num($("#cu").value);
+    const deb = v&&t ? v/t*60 : null; const lu = deb!=null&&u ? deb/60*u : null;
+    $("#cres").innerHTML = `Débit : <b>${fmtN(deb,1)}</b> L/min<br>Volume par usage : <b>${lu==null?"–":fmtN(lu,1)+" L"}</b>`;
+    $("#cok").disabled = lu==null; $("#cok").dataset.val = lu==null?"":String(Math.round(lu*10)/10); };
+  document.querySelectorAll("#ov input").forEach(x=>x.addEventListener("input",upd));
+}
+
+let phraseRes=null;
+function openPhrase(i){
+  const p = i>=0 ? cur.postes[i] : null;
+  modal(`${mhead(i<0?"Nouveau poste en une phrase":"Remplir le poste "+(i+1))}
+    <div class="hint" style="margin-bottom:8px">Décrivez l'usage comme à un collègue. Pour dicter : touchez le champ puis le <b>micro du clavier</b>.</div>
+    <textarea class="fld" id="phr" rows="4" placeholder="ex. nettoyeur haute pression, débit 10 litres par minute, utilisé 10 minutes par jour, 5 jours par semaine, et un vendredi sur deux 1 heure">${escH(p&&p.phrase||"")}</textarea>
+    <div id="phres" style="margin-top:10px"></div>
+    <button class="btn pri block" id="phok" data-act="phraseok" data-i="${i}" disabled>${i<0?"Créer le poste":"Remplir le poste"}</button>
+    <details style="margin-top:12px"><summary class="hint" style="margin:0">Formulations comprises</summary><div class="hint" style="margin-top:6px;line-height:1.6">
+      Volume : « chasse de 6 litres », « 15 litres par cycle », « 30 litres d'eau par fournée », « 200 litres par jour », « chasse 3 et 6 litres » (moyenne)<br>
+      Débit : « 10 litres par minute », « 12 l/min », « 12 litres minute », « 100 litres par heure », « seau de 10 litres rempli en 30 secondes »<br>
+      Surface : « 600 m², 7 litres par mètre carré », « 0,2 l/m² »<br>
+      Durée : « 10 minutes », « 1h30 », « 1 heure et quart », « une demi-heure », « 20 secondes par lavage »<br>
+      Fréquence : « 40 chasses par jour », « 3 fois par semaine », « tous les soirs », « matin et soir », « 4 le midi et 4 le soir », « tous les deux jours », « toutes les 2 semaines », « tous les mois », « en continu »<br>
+      Jours : « 5 jours par semaine », « 6 jours sur 7 », « du mardi au samedi », « un jour sur deux »<br>
+      Exceptions : « un vendredi sur deux, 1 heure », « le samedi 1 heure et demie »<br>
+      Périodes : « une semaine sur deux », « de juin à septembre », « pendant 3 mois »<br>
+      Quantités : « 4 salariés, 4 chasses par personne et par jour », « 12 machines, 4 cycles par machine », « 2 seaux de 12 litres par jour », « 40 véhicules, 50 litres par véhicule »<br>
+      Arrosage, abreuvement et fuites sont comptés 7 j/7 (et toute l'année pour animaux et fuites).</div></details>`);
+  const ta=$("#phr"); let tm=null;
+  const upd=()=>{
+    const txt=ta.value.trim(); const box=$("#phres"), ok=$("#phok");
+    if(!txt){ box.innerHTML=""; ok.disabled=true; phraseRes=null; return; }
+    const r=PJ.analyse(txt,{jours:num(cur.q.r22), semaines:num(cur.q.r23)}); phraseRes=r;
+    const f=r.fields, fake=Object.assign({lu:"",nb:"",freq:""},f), a=annuel(fake);
+    const row=(l,v)=>`<div><div class="l">${l}</div><div style="font-weight:700">${escH(v||"–")}</div></div>`;
+    box.innerHTML =
+      (r.understood.length?`<div class="res" style="font-size:14px;margin:0 0 8px"><b style="font-size:14px;font-family:Montserrat">Compris</b><br>${r.understood.map(escH).join("<br>")}</div>`:"")+
+      (r.calc.length?`<div class="res" style="font-size:14px;margin:0 0 8px"><b style="font-size:14px;font-family:Montserrat">Calcul</b><br>${r.calc.map(escH).join("<br>")}</div>`:"")+
+      (r.warn.length?`<div class="info warn" style="margin-bottom:8px">${r.warn.map(escH).join("<br>")}</div>`:"")+
+      `<div class="kpi" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;font-size:14px">
+        ${row("Catégorie",(f.cat||"").trim())}${row("Description","texte dicté + calcul")}
+        ${row("Volume par unité",f.lu?f.lu.replace(".",",")+" L":"")}${row("Unité",f.unit)}
+        ${row("Nombre d'unités",f.nb?f.nb.replace(".",","):"")}${row("Fréquence",f.freq)}
+        <div style="grid-column:1/-1"><div class="l">Soit, avec la logique de l'Excel</div><div style="font-weight:700">${a==null?"–":fmtN(a/1000,2)+" m³/an"}</div></div></div>`;
+    ok.disabled = !Object.keys(f).length;
+    ok.textContent = (i<0?"Créer le poste":"Remplir le poste")+(r.ok?"":" (incomplet)");
+  };
+  ta.addEventListener("input",()=>{ clearTimeout(tm); tm=setTimeout(upd,250); });
+  upd(); setTimeout(()=>ta.focus(),80);
+}
+function applyPhrase(i){
+  const r=phraseRes; if(!r) return;
+  const txt=$("#phr").value.trim();
+  let p;
+  if(i<0){ p={cat:"",desc:"",lu:"",unit:"",nb:"",freq:"",mes:"Estimation",res:"oui",temp:"",eq:""}; cur.postes.push(p); i=cur.postes.length-1; }
+  else p=cur.postes[i];
+  ["cat","lu","unit","nb","freq"].forEach(k=>{ if(r.fields[k]!=null) p[k]= (k==="lu"||k==="nb") ? r.fields[k].replace(".",",") : r.fields[k]; });
+  p.desc = txt + (r.calc.length ? "\nCalcul : "+r.calc.join(" ; ") : "");   // texte dicté + détail du calcul dans « Description »
+  if(p.eqAuto && p.eq===p.eqAuto) p.eq="";   // nettoie l'ancien remplissage automatique
+  delete p.eqAuto; p.phrase=txt;
+  ui.popen={}; ui.popen[i]=true; save(); closeModal(); render();
+  setTimeout(()=>{ const c=document.querySelectorAll(".poste")[i]; if(c) c.scrollIntoView({behavior:"smooth",block:"start"}); },60);
+  toast(r.ok?"Poste rempli : vérifiez les valeurs":"Poste rempli en partie : complétez les champs");
+}
+
+function openBanque(){
+  let filt="Tous secteurs";
+  const draw=(q="")=>{
+    const nq=q.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+    const list=BANQUE.map((b,k)=>[b,k]).filter(([b])=> (filt==="Tous secteurs"||b[0]===filt||b[0]==="Tous") && (!nq || (b[1]+" "+b[3]).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").includes(nq)));
+    $("#bql").innerHTML = list.map(([b,k])=>`<button class="bq" data-act="pickb" data-k="${k}"><b>${escH(b[1])}</b><span>${escH(b[0])} · ${escH(b[2])}${b[3]?" · "+escH(b[3]):""}</span></button>`).join("") || `<div class="empty">Aucun résultat</div>`;
+    document.querySelectorAll("#bqf .chip").forEach(c=>c.classList.toggle("on", c.dataset.f===filt));
+  };
+  modal(`${mhead("Banque de préconisations")}
+    <input class="fld" id="bqs" placeholder="Rechercher (toilettes, plonge…)" style="margin-bottom:10px">
+    <div class="chips" id="bqf">${["Tous secteurs","Alimentaire","Coiffeur"].map(f=>`<button class="chip" data-f="${f}">${f}</button>`).join("")}</div>
+    <div id="bql"></div>`);
+  $("#bqs").addEventListener("input",e=>draw(e.target.value));
+  document.querySelectorAll("#bqf .chip").forEach(c=>c.addEventListener("click",()=>{ filt=c.dataset.f; draw($("#bqs").value); }));
+  draw();
+}
+
+/* ---------- Export / import ---------- */
+// Format texte ASCII (accents encodés \uXXXX) lisible par la macro VBA sans souci d'encodage.
+function esc(s){
+  s=String(s==null?"":s); let o="";
+  for(const ch of s){
+    const c=ch.codePointAt(0);
+    if(ch==="\\") o+="\\\\"; else if(ch==="\t") o+="\\t"; else if(ch==="\n") o+="\\n"; else if(ch==="\r") {}
+    else if(c<32) {} else if(c<127) o+=ch;
+    else { for(let k=0;k<ch.length;k++) o+="\\u"+ch.charCodeAt(k).toString(16).toUpperCase().padStart(4,"0"); }
+  }
+  return o;
+}
+function unesc(s){ return s.replace(/\\(u[0-9A-Fa-f]{4}|n|t|\\)/g,(m,g)=> g==="n"?"\n": g==="t"?"\t": g==="\\"?"\\": String.fromCharCode(parseInt(g.slice(1),16))); }
+function nstr(s){ const n=num(s); return n==null?"":String(n); }
+function exportValue(it){
+  const v=qv(it);
+  if(it.type==="choice") return [v.c,(v.t||"").trim()].filter(Boolean).join(" – ");
+  if(it.type==="multi") return [v.c.join(", "),(v.t||"").trim()].filter(Boolean).join(" – ");
+  if(it.type==="number"||it.type==="qty"){ const n=num(v); if(n==null) return String(v).trim(); return String(Math.round(n*(it.scale||1)*1e6)/1e6); }
+  if(it.kind==="s") return String(v).replace(/\s/g,"").toUpperCase();
+  return String(v).trim();
+}
+function kindOf(it){ if((it.type==="number"||it.type==="qty") && num(qv(it))==null) return "t"; return it.kind; }
+function buildExport(v){
+  const L=[]; const push=(...f)=>L.push(f.map(esc).join("\t"));
+  push("#CMA-VISITE-EAU","1");
+  push("M","entreprise",vName(v)); push("M","date_visite",v.q.r5||""); push("M","exporte_le",new Date().toISOString());
+  if(num(v.volFact)!=null) push("M","volume_facture_m3",nstr(v.volFact));
+  ALLQ.forEach(it=>{ if(!visible(it)||!answered(it)) return; const val=exportValue(it); if(val!=="") push("Q",it.r,kindOf(it),it.label,val); });
+  if((v.j4||"").trim()) push("J4",v.j4.trim());
+  v.postes.forEach((p,i)=>push("P",i+1,p.cat||"",(p.desc||"").trim(),nstr(p.lu),(p.unit||"").trim(),nstr(p.nb),p.freq||"",p.mes||"",p.res||"",nstr(p.temp),(p.eq||"").trim()));
+  v.pistes.forEach((a,i)=>push("A",i+1,(a.titre||"").trim(),a.poste||"",a.type||"",(a.com||"").trim(),a.src==="banque"?"Banque":"Libre"));
+  v.notes.filter(n=>(n.txt||"").trim()).forEach((n,i)=>push("N",i+1,fmtTs(n.ts),n.txt.trim()));
+  push("RAW",JSON.stringify(v));
+  return L.join("\r\n")+"\r\n";
+}
+function fileName(v){
+  const n=vName(v).normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^A-Za-z0-9]+/g,"_").replace(/^_|_$/g,"").slice(0,40)||"visite";
+  return "Visite_"+n+"_"+(v.q.r5||today())+".txt";
+}
+function openExport(){
+  const canShare = !!(navigator.canShare && window.File && (()=>{ try{ return navigator.canShare({files:[new File(["x"],"t.txt",{type:"text/plain"})]}); }catch(e){ return false; } })());
+  modal(`${mhead("Exporter la visite")}
+    <div class="res" style="font-size:14px"><b style="font-size:16px">${escH(vName(cur))}</b><br>
+      ${cur.postes.length} poste(s) · ${cur.pistes.length} piste(s) · ${cur.notes.filter(n=>(n.txt||"").trim()).length} note(s)</div>
+    ${!(cur.q.r7||"").trim()?`<div class="info warn" style="margin-bottom:12px">Le nom de l'entreprise n'est pas renseigné.</div>`:""}
+    <div class="btns" style="flex-direction:column">
+      ${canShare?`<button class="btn pri block" data-act="share">${I.share} Envoyer ou enregistrer (mail, Teams, Fichiers…)</button>`:""}
+      ${canShare && navigator.standalone===true ? "" : `<button class="btn ${canShare?"sec2":"pri"} block" data-act="download">${I.dl} Télécharger le fichier</button>`}
+    </div>
+    <div class="hint" style="margin-top:14px">Sur le PC : ouvrir le diagnostic Excel → onglet « Questions entretien » → bouton <b>Importer la visite</b> → choisir ce fichier.</div>
+    <button class="btn ghost block" data-act="delv" style="margin-top:8px">${I.trash} Supprimer cette visite du téléphone</button>`);
+}
+function doDownload(){
+  const blob=new Blob([buildExport(cur)],{type:"text/plain"}); const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download=fileName(cur); document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },1500);
+  markExported(); toast("Fichier téléchargé : "+fileName(cur));
+}
+async function doShare(){
+  const f=new File([buildExport(cur)], fileName(cur), {type:"text/plain"});
+  try{ await navigator.share({files:[f], title:"Visite eau – "+vName(cur)}); markExported(); }
+  catch(e){ if(e.name!=="AbortError") { toast("Partage impossible, téléchargement à la place."); doDownload(); } }
+}
+function markExported(){ cur.exported=Date.now(); persist(); closeModal(); }
+
+function importFile(file){
+  const rd=new FileReader();
+  rd.onload=()=>{
+    const line=String(rd.result).split(/\r?\n/).find(l=>l.startsWith("RAW\t"));
+    if(!line){ toast("Fichier non reconnu (export de visite attendu)."); return; }
+    try{
+      const v=JSON.parse(unesc(line.slice(4)));
+      if(!v||!v.q) throw 0;
+      v.postes=v.postes||[]; v.pistes=v.pistes||[]; v.notes=v.notes||[];
+      if(store.visits[v.id] && !confirm("Cette visite existe déjà sur ce téléphone. La remplacer par le contenu du fichier ?")) { v.id="v"+Date.now().toString(36); }
+      store.visits[v.id]=v; persist(); cur=v; ui.view="visit"; ui.tab="c"; render(); toast("Visite ouverte.");
+    }catch(e){ toast("Fichier illisible."); }
+  };
+  rd.readAsText(file);
+}
+
+/* ---------- Toast ---------- */
+let toastT=null;
+function toast(m){ let t=$(".toast"); if(!t){ t=document.createElement("div"); t.className="toast"; document.body.appendChild(t); } t.textContent=m; clearTimeout(toastT); toastT=setTimeout(()=>t.remove(),3200); }
+
+/* ---------- Événements ---------- */
+function rerenderKeepScroll(){ const y=window.scrollY; render(); window.scrollTo(0,y); }
+
+document.addEventListener("input", e=>{
+  const el=e.target; if(!cur || !el.dataset || !el.dataset.bind) return;
+  const path=el.dataset.bind;
+  setPath(path, el.value);
+  // contrôles de format
+  const m=path.match(/^q\.r(\d+)$/);
+  if(m){ const it=ALLQ.find(x=>x.r===+m[1]); if(it&&it.check){ const ok=it.check(el.value); el.classList.toggle("bad",!ok); const msg=document.querySelector(`[data-badfor="${it.r}"]`); if(msg) msg.classList.toggle("hidden",ok);} }
+  save(); updateDerived();
+});
+document.addEventListener("change", e=>{
+  const el=e.target;
+  if(el.id==="fileIn"){ if(el.files[0]) importFile(el.files[0]); el.value=""; return; }
+  if(cur && el.tagName==="SELECT" && el.dataset.bind){ setPath(el.dataset.bind, el.value); save(); updateDerived(); if(/^postes\.\d+\.(cat|freq|mes)$/.test(el.dataset.bind)){ const i=+el.dataset.bind.split(".")[1]; const pt=document.querySelector(`[data-act="togp"][data-i="${i}"] .pt span`); const p=cur.postes[i]; if(pt) pt.textContent=[p.freq,p.mes].filter(Boolean).join(" · "); } }
+});
+document.addEventListener("toggle", e=>{ const d=e.target; if(d.classList&&d.classList.contains("sec")) ui.open[d.dataset.sec]=d.open; }, true);
+
+document.addEventListener("click", e=>{
+  const mic=e.target.closest("[data-mic]"); if(mic){ e.preventDefault(); dictate(mic); return; }
+  const chip=e.target.closest("[data-chip]");
+  if(chip){
+    const path=chip.dataset.chip, val=chip.dataset.val, r=+path.split(".r")[1], it=ALLQ.find(x=>x.r===r), v=qv(it);
+    if(chip.dataset.mode==="1") v.c = v.c===val ? "" : val;
+    else { const k=v.c.indexOf(val); if(k>=0) v.c.splice(k,1); else v.c.push(val); }
+    cur.q["r"+r]=v; save(); rerenderKeepScroll(); return;
+  }
+  const b=e.target.closest("[data-act]"); if(!b) return;
+  const act=b.dataset.act, i=+b.dataset.i;
+  switch(act){
+    case "new": cur=newVisit(); ui.view="visit"; ui.tab="c"; ui.popen={}; render(); window.scrollTo(0,0); setTimeout(()=>{ const n=document.querySelector('[data-bind="q.r7"]'); if(n) n.focus(); },60); break;
+    case "openv": cur=store.visits[b.dataset.id]; ui.view="visit"; ui.tab="c"; ui.popen={}; render(); window.scrollTo(0,0); break;
+    case "import": $("#fileIn").click(); break;
+    case "home": if(rec) try{rec.stop();}catch(_){}; persist(); cur=null; ui.view="home"; render(); window.scrollTo(0,0); break;
+    case "tab": ui.tab=b.dataset.tab; render(); window.scrollTo(0,0); break;
+    case "export": openExport(); break;
+    case "download": doDownload(); break;
+    case "share": doShare(); break;
+    case "closem": closeModal(); break;
+    case "addp": cur.postes.push({cat:"",desc:"",lu:"",unit:"",nb:"",freq:"",mes:"Estimation",res:"oui",temp:"",eq:""}); ui.popen={}; ui.popen[cur.postes.length-1]=true; save(); render(); setTimeout(()=>{ const c=document.querySelectorAll(".poste"); c[c.length-1].scrollIntoView({behavior:"smooth",block:"start"}); },50); break;
+    case "dupp": { const c=JSON.parse(JSON.stringify(cur.postes[i])); cur.postes.splice(i+1,0,c); ui.popen={}; ui.popen[i+1]=true; save(); rerenderKeepScroll(); break; }
+    case "delp": if(confirm("Supprimer ce poste ?")){ cur.postes.splice(i,1); ui.popen={}; save(); rerenderKeepScroll(); } break;
+    case "togp": ui.popen[i]=!ui.popen[i]; rerenderKeepScroll(); break;
+    case "calc": openCalc(i); break;
+    case "calcok": { const val=b.dataset.val; if(val){ cur.postes[i].lu=val.replace(".",","); save(); closeModal(); rerenderKeepScroll(); toast("Volume reporté : "+val.replace(".",",")+" L"); } break; }
+    case "banque": openBanque(); break;
+    case "phrase": openPhrase(i); break;
+    case "phraseok": applyPhrase(i); break;
+    case "pickb": { const k=BANQUE[+b.dataset.k]; cur.pistes.unshift({ts:Date.now(),src:"banque",titre:k[1],poste:k[3],type:k[2],com:""}); save(); closeModal(); render(); window.scrollTo(0,0); toast("Piste ajoutée"); break; }
+    case "addlibre": cur.pistes.unshift({ts:Date.now(),src:"libre",titre:"",poste:"",type:"",com:""}); save(); render(); window.scrollTo(0,0); setTimeout(()=>{ const t=document.querySelector('[data-bind="pistes.0.titre"]'); if(t) t.focus(); },50); break;
+    case "dela": if(confirm("Supprimer cette piste ?")){ cur.pistes.splice(i,1); save(); rerenderKeepScroll(); } break;
+    case "addn": cur.notes.unshift({ts:Date.now(),txt:""}); save(); render(); window.scrollTo(0,0); setTimeout(()=>{ const t=document.querySelector('[data-bind="notes.0.txt"]'); if(t) t.focus(); },50); break;
+    case "deln": if(confirm("Supprimer cette note ?")){ cur.notes.splice(i,1); save(); rerenderKeepScroll(); } break;
+    case "delvid": {
+      const vv=store.visits[b.dataset.id]; if(!vv) break;
+      if(confirm("Supprimer la visite « "+vName(vv)+" » de ce téléphone ?"+(vv.exported?"":"\n\nAttention : elle n'a jamais été exportée, les données seront perdues."))){
+        delete store.visits[vv.id]; persist(); render(); toast("Visite supprimée");
+      }
+      break;
+    }
+    case "delv":
+      if(confirm("Supprimer la visite « "+vName(cur)+" » de ce téléphone ?"+(cur.exported?"":"\n\nAttention : elle n'a jamais été exportée."))){
+        delete store.visits[cur.id]; persist(); cur=null; closeModal(); ui.view="home"; render(); window.scrollTo(0,0); toast("Visite supprimée");
+      }
+      break;
+  }
+});
+
+loadStore(); render();
+</script>
+</body>
+</html>
